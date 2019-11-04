@@ -9,6 +9,7 @@ pylint = "*"
 [packages]
 requests = "*"
 apscheduler = "*"
+pytz = "*"
 
 [requires]
 python_version = "3.6"
