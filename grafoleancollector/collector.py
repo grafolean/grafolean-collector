@@ -182,13 +182,21 @@ class IntervalsAwareProcessPoolExecutor(BaseExecutor):
 
 
 class Collector(object):
-    __slots__ = 'backend_url', 'bot_token', 'scheduler', 'known_jobs', 'jobs_refresh_interval'
+    __slots__ = 'backend_url', 'bot_token', 'scheduler', 'known_jobs', 'jobs_refresh_interval', 'user_id'
 
     def __init__(self, backend_url, bot_token, jobs_refresh_interval):
         self.backend_url = backend_url
         self.bot_token = bot_token
         self.jobs_refresh_interval = jobs_refresh_interval
         self.known_jobs = {}
+        self._fetch_user_id()
+
+    def _fetch_user_id(self):
+        r = requests.get('{}/profile/?b={}'.format(self.backend_url, self.bot_token))
+        if r.status_code != 200:
+            raise Exception("Invalid bot token or network error, got status {} while retrieving {}/profile".format(r.status_code, self.backend_url))
+        j = r.json()
+        self.user_id = j["user_id"]
 
     @abstractmethod
     def jobs(self):
@@ -204,8 +212,8 @@ class Collector(object):
             The data is cleaned up as much as possible, so that it only contains the things necessary for collectors
             to do their job.
         """
-        # find all the accounts we have access to:
         requests_session = requests.Session()
+        # find all the accounts we have access to:
         r = requests_session.get('{}/accounts/?b={}'.format(self.backend_url, self.bot_token))
         if r.status_code != 200:
             raise Exception("Invalid bot token or network error, got status {} while retrieving {}/accounts".format(r.status_code, self.backend_url))
@@ -228,6 +236,9 @@ class Collector(object):
 
                 # make sure that the protocol is enabled on the entity:
                 if protocol not in entity_info["protocols"]:
+                    continue
+                # and that the bot id is our own, or not set: (indicating that it predates the time when this option became available - which should not matter after ~2020-01-01)
+                if entity_info["protocols"][protocol].get("bot", None) is not None and entity_info["protocols"][protocol]["bot"] != self.user_id:
                     continue
                 # and that credential is set:
                 if not entity_info["protocols"][protocol]["credential"]:
