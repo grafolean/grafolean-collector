@@ -205,7 +205,8 @@ class Collector(object):
             to do their job.
         """
         # find all the accounts we have access to:
-        r = requests.get('{}/accounts/?b={}'.format(self.backend_url, self.bot_token))
+        requests_session = requests.Session()
+        r = requests_session.get('{}/accounts/?b={}'.format(self.backend_url, self.bot_token))
         if r.status_code != 200:
             raise Exception("Invalid bot token or network error, got status {} while retrieving {}/accounts".format(r.status_code, self.backend_url))
         j = r.json()
@@ -213,14 +214,14 @@ class Collector(object):
 
         # find all entities for each of the accounts:
         for account_id in accounts_ids:
-            r = requests.get('{}/accounts/{}/entities/?b={}'.format(self.backend_url, account_id, self.bot_token))
+            r = requests_session.get('{}/accounts/{}/entities/?b={}'.format(self.backend_url, account_id, self.bot_token))
             if r.status_code != 200:
                 raise Exception("Network error, got status {} while retrieving {}/accounts/{}/entities".format(r.status_code, self.backend_url, account_id))
             j = r.json()
             entities_ids = [e["id"] for e in j["list"]]
 
             for entity_id in entities_ids:
-                r = requests.get('{}/accounts/{}/entities/{}?b={}'.format(self.backend_url, account_id, entity_id, self.bot_token))
+                r = requests_session.get('{}/accounts/{}/entities/{}?b={}'.format(self.backend_url, account_id, entity_id, self.bot_token))
                 if r.status_code != 200:
                     raise Exception("Network error, got status {} while retrieving {}/accounts/{}/entities/{}".format(r.status_code, self.backend_url, account_id, entity_id))
                 entity_info = r.json()
@@ -236,7 +237,7 @@ class Collector(object):
                 if not entity_info["protocols"][protocol]["sensors"]:
                     continue
 
-                r = requests.get('{}/accounts/{}/credentials/{}?b={}'.format(self.backend_url, account_id, credential_id, self.bot_token))
+                r = requests_session.get('{}/accounts/{}/credentials/{}?b={}'.format(self.backend_url, account_id, credential_id, self.bot_token))
                 if r.status_code != 200:
                     raise Exception("Network error, got status {} while retrieving {}/accounts/{}/credentials/{}".format(r.status_code, self.backend_url, account_id, credential_id))
                 credential = r.json()
@@ -245,7 +246,7 @@ class Collector(object):
                 sensors = []
                 for sensor_info in entity_info["protocols"][protocol]["sensors"]:
                     sensor_id = sensor_info["sensor"]
-                    r = requests.get('{}/accounts/{}/sensors/{}?b={}'.format(self.backend_url, account_id, sensor_id, self.bot_token))
+                    r = requests_session.get('{}/accounts/{}/sensors/{}?b={}'.format(self.backend_url, account_id, sensor_id, self.bot_token))
                     if r.status_code != 200:
                         raise Exception("Network error, got status {} while retrieving {}/accounts/{}/sensors/{}".format(r.status_code, self.backend_url, account_id, sensor["sensor"]))
                     sensor = r.json()
@@ -274,6 +275,8 @@ class Collector(object):
                 del entity_info["id"]
 
                 yield entity_info
+
+        requests_session.close()
 
     def refresh_jobs(self):
         wanted_jobs = set()
