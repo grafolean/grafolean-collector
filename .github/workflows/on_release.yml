@@ -30,7 +30,7 @@ jobs:
         export VERSION=${GITHUB_REF_TAG:10:50}
         echo "Version is $VERSION"
         pip install --no-cache-dir twine pipenv wheel
-        sed -i "s/@@VERSION@@/$CI_COMMIT_TAG/g" ./setup.py
+        sed -i "s/@@VERSION@@/$VERSION/g" ./setup.py
         pipenv lock -r > requirements.txt
         python setup.py install
         python setup.py sdist
