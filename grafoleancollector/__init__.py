@@ -1,1 +1,1 @@
-from .collector import Collector
+from .collector import Collector, send_results_to_grafolean

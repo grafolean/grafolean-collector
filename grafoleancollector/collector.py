@@ -181,6 +181,22 @@ class IntervalsAwareProcessPoolExecutor(BaseExecutor):
             open('/tmp/fail_health_check', 'a').close()
 
 
+def send_results_to_grafolean(backend_url, bot_token, account_id, values):
+    url = '{}/accounts/{}/values/?b={}'.format(backend_url, account_id, bot_token)
+
+    if len(values) == 0:
+        logging.warning("No results available to be sent to Grafolean, skipping.")
+        return
+
+    logging.info("Sending results to Grafolean")
+    try:
+        r = requests.post(url, json=values)
+        r.raise_for_status()
+        logging.info("Results sent: {}".format(values))
+    except:
+        logging.exception("Error sending data to Grafolean")
+
+
 class Collector(object):
     __slots__ = 'backend_url', 'bot_token', 'scheduler', 'known_jobs', 'jobs_refresh_interval', 'user_id'
 
