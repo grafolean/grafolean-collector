@@ -14,5 +14,6 @@ setup(name='grafoleancollector',
       description='Common utilities for creating (controlled) collectors for Grafolean',
       packages=find_packages(exclude=['tests']),
       long_description=open('README.md').read(),
+      long_description_content_type='text/markdown',
       install_requires=install_requires,
       zip_safe=False)
