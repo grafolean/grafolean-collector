@@ -284,8 +284,9 @@ class Collector(object):
                     elif sensor["default_interval"] is not None:
                         interval = sensor["default_interval"]
                     else:
-                        logging.warn("Interval not set, ignoring sensor {} on entity {}!".format(sensor_id, entity_id))
-                        continue
+                        # some sensors might not be periodic, or their interval might not be specified in the same way as with periodic
+                        # sensors - we allow bots to handle such cases by themselves:
+                        interval = None
                     del sensor["default_interval"]  # cleanup - nobody should need this anymore
 
                     sensors.append({
