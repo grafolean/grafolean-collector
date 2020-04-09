@@ -347,7 +347,7 @@ class Collector(object):
         # initialize APScheduler:
         job_defaults = {
             'coalesce': True,  # if multiple jobs "misfire", re-run only one instance of a missed job
-            'max_instances': 1,
+            'max_instances': 100, # temporarily set to high value until we figure out how to better deal with this
         }
         self.scheduler = BackgroundScheduler(job_defaults=job_defaults, timezone=utc)
         self.scheduler.add_executor(IntervalsAwareProcessPoolExecutor(10), 'iaexecutor')
