@@ -247,7 +247,7 @@ class Collector(object):
             if r.status_code != 200:
                 raise Exception("Network error, got status {} while retrieving {}/accounts/{}/entities".format(r.status_code, self.backend_url, account_id))
             j = r.json()
-            entities_ids = [e["id"] for e in j["list"]]
+            entities_ids = [e["id"] for e in j["list"] if e["entity_type"] == "device"]
 
             for entity_id in entities_ids:
                 r = requests_session.get('{}/accounts/{}/entities/{}?b={}'.format(self.backend_url, account_id, entity_id, self.bot_token))
